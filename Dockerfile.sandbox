@@ -1,0 +1,35 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y \
+  git curl python3 python3-pip python3-venv \
+  nodejs npm shellcheck wget unzip \
+  postgresql postgresql-contrib \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED
+
+# Terraform
+RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg \
+  && echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com noble main" > /etc/apt/sources.list.d/hashicorp.list \
+  && apt-get update && apt-get install -y terraform
+
+# Poetry isoliert
+RUN python3 -m venv /opt/poetry \
+  && /opt/poetry/bin/pip install --upgrade pip poetry \
+  && ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
+
+# Projekt-Venv
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+RUN pip install --upgrade pip ruff pytest pytest-mock
+
+WORKDIR /tmp/backend
+COPY backend/pyproject.toml backend/poetry.lock* /tmp/backend/
+RUN poetry config virtualenvs.create false \
+  && poetry install --no-root --no-interaction
+
+WORKDIR /workspace
+CMD ["/bin/bash"]
