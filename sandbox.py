@@ -246,13 +246,13 @@ def main() -> None:
 
     # Determine command
     if args.fast:
-        cmd = "bash harness/verify.sh fast"
+        cmd = "bash agentic-harness/verify.sh fast"
     elif args.full:
-        cmd = "bash harness/verify.sh"
+        cmd = "bash agentic-harness/verify.sh"
     elif args.command:
         cmd = " ".join(args.command)
     else:
-        cmd = "bash harness/verify.sh fast"
+        cmd = "bash agentic-harness/verify.sh fast"
 
     print(f"==> Launching in Sandbox (Ephemeral: {args.ephemeral}): '{cmd}'\n")
     result = run_in_sandbox(
