@@ -25,9 +25,9 @@ if [ -d "templates" ]; then
   terraform -chdir=templates fmt -check 2>/dev/null || true
 fi
 
-echo "==> 3. Running Tests..."
+echo "==> 3. Running Backend Tests..."
 if [ -d "backend/tests" ]; then
-  # Ermöglicht schnelles Testen via: bash harness/verify.sh fast
+  # Ermöglicht schnelles Testen via: bash agentic-harness/verify.sh fast
   if [ "$1" = "fast" ]; then
     echo "--> Running FAST Unit Tests only..."
     pytest backend/tests/unit/ -q --no-cov
@@ -35,6 +35,30 @@ if [ -d "backend/tests" ]; then
     echo "--> Running FULL Test Suite..."
     pytest backend/tests/ -q --no-cov
   fi
+fi
+
+echo "==> 4. Frontend: Type-Check, Konventions-Gate, Tests..."
+if [ -d "frontend" ]; then
+  cd frontend
+
+  echo "--> npm ci..."
+  npm ci --prefer-offline --no-audit --no-fund
+
+  echo "--> Type-Check..."
+  npm run type-check
+
+  echo "--> Konventions-Gate..."
+  npm run check
+
+  if [ "$1" = "fast" ]; then
+    echo "--> Running FAST Frontend Tests only..."
+    npm run test
+  else
+    echo "--> Running Frontend Tests with Coverage..."
+    npm run test:coverage
+  fi
+
+  cd ..
 fi
 
 echo "==> Alles im grünen Bereich!"

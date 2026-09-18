@@ -3,8 +3,14 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
   git curl python3 python3-pip python3-venv \
-  nodejs npm shellcheck wget unzip \
+  shellcheck wget unzip \
   postgresql postgresql-contrib \
+  && rm -rf /var/lib/apt/lists/*
+
+# Node 22 — muss mit frontend/.github/workflows/ci.yml (node-version: 22) übereinstimmen.
+# ubuntu-apt liefert nur Node 18, daher explizit via NodeSource.
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+  && apt-get install -y nodejs \
   && rm -rf /var/lib/apt/lists/*
 
 RUN rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED
