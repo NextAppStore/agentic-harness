@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-harness/sandbox.py - Sandbox execution engine for NextAppStore
+agentic-harness/sandbox.py - Sandbox execution engine for NextAppStore
 
 Provides a clean, isolated environment for running tests, linters,
 and agent-generated commands inside Docker.
@@ -105,7 +105,7 @@ def run_in_sandbox(
     Executes a shell command inside the Docker sandbox.
 
     Args:
-        command: The command to execute in /workspace (e.g. 'bash harness/verify.sh fast')
+        command: The command to execute in /workspace (e.g. 'bash agentic-harness/verify.sh fast')
         timeout: Maximum seconds allowed before killing the container.
         ephemeral: If True, copies the repo to an isolated temp directory first.
         workspace_path: Custom directory to mount into /workspace (defaults to REPO_ROOT).
@@ -210,7 +210,7 @@ def main() -> None:
     parser.add_argument(
         "command",
         nargs="*",
-        help="Command to run inside the sandbox. Defaults to 'bash harness/verify.sh fast'.",
+        help="Command to run inside the sandbox. Defaults to 'bash agentic-harness/verify.sh fast'.",
     )
     parser.add_argument(
         "--fast",
@@ -246,13 +246,13 @@ def main() -> None:
 
     # Determine command
     if args.fast:
-        cmd = "bash harness/verify.sh fast"
+        cmd = "bash agentic-harness/verify.sh fast"
     elif args.full:
-        cmd = "bash harness/verify.sh"
+        cmd = "bash agentic-harness/verify.sh"
     elif args.command:
         cmd = " ".join(args.command)
     else:
-        cmd = "bash harness/verify.sh fast"
+        cmd = "bash agentic-harness/verify.sh fast"
 
     print(f"==> Launching in Sandbox (Ephemeral: {args.ephemeral}): '{cmd}'\n")
     result = run_in_sandbox(

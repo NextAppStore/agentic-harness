@@ -27,7 +27,7 @@ fi
 
 echo "==> 3. Running Tests..."
 if [ -d "backend/tests" ]; then
-  # Ermöglicht schnelles Testen via: bash harness/verify.sh fast
+  # Ermöglicht schnelles Testen via: bash agentic-harness/verify.sh fast
   if [ "$1" = "fast" ]; then
     echo "--> Running FAST Unit Tests only..."
     pytest backend/tests/unit/ -q --no-cov
