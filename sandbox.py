@@ -25,6 +25,13 @@ REPO_ROOT = HARNESS_DIR.parent
 DOCKERFILE_PATH = HARNESS_DIR / "Dockerfile.sandbox"
 IMAGE_NAME = "nextappstore-sandbox:latest"
 
+# Runtime — prefer docker, fall back to podman (mirrors the deployment/ Makefile logic)
+def _container_runtime() -> str:
+    for rt in ("docker", "podman"):
+        if shutil.which(rt):
+            return rt
+    raise FileNotFoundError("Neither 'docker' nor 'podman' found in PATH.")
+
 
 @dataclasses.dataclass
 class SandboxResult:
@@ -53,18 +60,19 @@ class SandboxResult:
 
 def ensure_image(force: bool = False) -> None:
     """Builds the sandbox Docker image if missing or if force=True."""
+    rt = _container_runtime()
     if not force:
         inspect = subprocess.run(
-            ["docker", "image", "inspect", IMAGE_NAME],
+            [rt, "image", "inspect", IMAGE_NAME],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
         if inspect.returncode == 0:
             return
 
-    print(f"==> Building sandbox image '{IMAGE_NAME}' (Context: {REPO_ROOT})...")
+    print(f"==> Building sandbox image '{IMAGE_NAME}' (Context: {REPO_ROOT}, Runtime: {rt})...")
     build_cmd = [
-        "docker", "build",
+        rt, "build",
         "-f", str(DOCKERFILE_PATH),
         "-t", IMAGE_NAME,
         str(REPO_ROOT),
@@ -116,10 +124,11 @@ def run_in_sandbox(
 
     start_time = time.time()
     source_workspace = (workspace_path or REPO_ROOT).resolve()
+    rt = _container_runtime()
 
     def _execute(target_path: Path) -> SandboxResult:
         docker_cmd: List[str] = [
-            "docker", "run",
+            rt, "run",
             "--rm",
             "-v", f"{target_path}:/workspace:rw",
             "-w", "/workspace",
@@ -183,8 +192,14 @@ def run_in_sandbox(
 
         except subprocess.TimeoutExpired as exc:
             duration = time.time() - start_time
-            # Try to kill container if orphaned
-            subprocess.run(["docker", "ps", "-q", "--filter", f"ancestor={IMAGE_NAME}"], capture_output=True)
+            # Kill any orphaned containers left running from this image
+            orphans = subprocess.run(
+                [rt, "ps", "-q", "--filter", f"ancestor={IMAGE_NAME}"],
+                capture_output=True, text=True,
+            )
+            container_ids = orphans.stdout.split()
+            if container_ids:
+                subprocess.run([rt, "kill", *container_ids], capture_output=True)
             return SandboxResult(
                 command=command,
                 exit_code=-1,

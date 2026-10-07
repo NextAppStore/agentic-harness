@@ -4,8 +4,8 @@ This harness provides an isolated, reproducible Docker sandbox for running linte
 
 ## Architecture
 
-- **`Dockerfile.sandbox`**: Container image definition with Ubuntu 24.04, Python venv, Poetry, PostgreSQL, Terraform, and Shellcheck.
-- **`verify.sh`**: The verification script that boots Postgres, seeds the test database, runs `ruff`, validates templates, and executes `pytest`.
+- **`Dockerfile.sandbox`**: Container image definition with Ubuntu 24.04, Python venv, Poetry, PostgreSQL, Node 22, Terraform, and Shellcheck.
+- **`verify.sh`**: The verification script that boots Postgres, seeds the test database, runs `ruff`, validates templates, executes `pytest`, and runs the frontend type-check, conventions gate, and Vitest suite.
 - **`sandbox.py`**: The Python sandbox runner and programmatic SDK (`run_in_sandbox`).
 - **`run.sh`**: Quick bash CLI wrapper.
 
@@ -15,15 +15,15 @@ This harness provides an isolated, reproducible Docker sandbox for running linte
 
 ### 1. Command Line (Developers & Agents)
 
-From anywhere in the repository root:
+From the repository root (one level above `agentic-harness/`):
 
 ```bash
-# 1. Fast verification (Linting + Unit tests)
+# 1. Fast verification (Linting + Unit tests — Backend & Frontend)
 python3 agentic-harness/sandbox.py --fast
 # Or via bash wrapper:
 ./agentic-harness/run.sh --fast
 
-# 2. Full verification (Linting + Integration + Unit tests)
+# 2. Full verification (Linting + Integration + Unit tests + Frontend Coverage)
 python3 agentic-harness/sandbox.py --full
 
 # 3. Ephemeral mode (Copies repo to isolated tempdir, guarantees zero host pollution)
@@ -37,6 +37,9 @@ python3 agentic-harness/sandbox.py ruff check backend/
 python3 agentic-harness/sandbox.py --rebuild
 ```
 
+> **Note:** The folder must be named `agentic-harness/` (not `harness/`) for the default
+> commands to resolve correctly.
+
 ---
 
 ### 2. Programmatic Python SDK (Agent Loops & Eval Scripts)
@@ -44,6 +47,8 @@ python3 agentic-harness/sandbox.py --rebuild
 You can import `run_in_sandbox` directly in agent workflows or benchmark scripts:
 
 ```python
+import sys
+sys.path.insert(0, "agentic-harness")  # directory name has a hyphen, so it isn't importable as a package
 from sandbox import run_in_sandbox
 
 # Execute a test run
