@@ -192,8 +192,14 @@ def run_in_sandbox(
 
         except subprocess.TimeoutExpired as exc:
             duration = time.time() - start_time
-            # Try to kill container if orphaned
-            subprocess.run([rt, "ps", "-q", "--filter", f"ancestor={IMAGE_NAME}"], capture_output=True)
+            # Kill any orphaned containers left running from this image
+            orphans = subprocess.run(
+                [rt, "ps", "-q", "--filter", f"ancestor={IMAGE_NAME}"],
+                capture_output=True, text=True,
+            )
+            container_ids = orphans.stdout.split()
+            if container_ids:
+                subprocess.run([rt, "kill", *container_ids], capture_output=True)
             return SandboxResult(
                 command=command,
                 exit_code=-1,

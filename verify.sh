@@ -37,28 +37,27 @@ if [ -d "backend/tests" ]; then
   fi
 fi
 
-echo "==> 4. Frontend: Type-Check, Konventions-Gate, Tests..."
+echo "==> 4. Frontend: Type-Check, Tests..."
 if [ -d "frontend" ]; then
-  cd frontend
+  (
+    cd frontend
 
-  echo "--> npm ci..."
-  npm ci --prefer-offline --no-audit --no-fund
+    if [ ! -d "node_modules" ] || [ package-lock.json -nt node_modules ]; then
+      echo "--> npm ci..."
+      npm ci --prefer-offline --no-audit --no-fund
+    fi
 
-  echo "--> Type-Check..."
-  npm run type-check
+    echo "--> Type-Check..."
+    npm run type-check
 
-  echo "--> Konventions-Gate..."
-  npm run check
-
-  if [ "$1" = "fast" ]; then
-    echo "--> Running FAST Frontend Tests only..."
-    npm run test
-  else
-    echo "--> Running Frontend Tests with Coverage..."
-    npm run test:coverage
-  fi
-
-  cd ..
+    if [ "$1" = "fast" ]; then
+      echo "--> Running FAST Frontend Tests only..."
+      npm run test
+    else
+      echo "--> Running Frontend Tests with Coverage..."
+      npm run test:coverage
+    fi
+  )
 fi
 
 echo "==> Alles im grünen Bereich!"

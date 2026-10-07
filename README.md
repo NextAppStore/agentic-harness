@@ -47,7 +47,9 @@ python3 agentic-harness/sandbox.py --rebuild
 You can import `run_in_sandbox` directly in agent workflows or benchmark scripts:
 
 ```python
-from agentic_harness.sandbox import run_in_sandbox
+import sys
+sys.path.insert(0, "agentic-harness")  # directory name has a hyphen, so it isn't importable as a package
+from sandbox import run_in_sandbox
 
 # Execute a test run
 result = run_in_sandbox(
