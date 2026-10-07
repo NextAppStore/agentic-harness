@@ -66,3 +66,72 @@ else:
     print("STDERR:", result.stderr)
     # Feed result.stderr / result.stdout back to the LLM for self-correction
 ```
+
+### Docs for the Presentation
+
+```mermaid
+---
+title: Agent Verification Loop
+---
+
+
+flowchart TD
+    Agent["Coding Agent"] -->|"1. Triggert Testlauf"| Runner["Runner (sandbox.py)"]
+    Runner -->|"2. Isoliert Workspace"| Docker["Docker-Sandbox\n Linting + Verfication + Testing"]
+    Docker -->|"3. Liefert Fehlerlogs"| Agent
+```
+
+```mermaid
+---
+title: Context Engineering - Statischer Kontext
+---
+flowchart
+
+	subgraph NextAppStore - Github Org
+
+		ga[AGENTS.md]
+
+		subgraph Core Application
+			subgraph frontend
+				fa[AGENTS.md]
+			end
+			subgraph backend
+				ba[AGENTS.md]
+				openapi[openapi.json]
+			end
+
+			subgraph worker
+				wa[AGENTS.md]
+			end
+		end
+		subgraph template-app
+			aa[AGENTS.md]
+		end
+		subgraph deployment
+			da[AGENTS.md]
+		end
+	end
+
+	subgraph externe Quellen
+		ltidocs[LTI 1.3 Spezifikation]
+	end
+
+	%% general agent.md verweist auf die agent.md der einzelnen Repositorys
+	ga-->fa
+	ga-->ba
+	ga-->aa
+	ga-->wa
+	ga-->da
+
+	%% backend und frontend teilen den Zugriff auf die OpenAPI spezifikation
+	fa-->openapi
+	ba-->openapi
+
+	%% Zugriff auf externe Doku
+	ba-->ltidocs
+
+```
+
+### Notes
+
+- MCP Server refernziern
