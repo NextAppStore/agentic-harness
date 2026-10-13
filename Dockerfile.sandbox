@@ -12,7 +12,21 @@ RUN rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED
 # Terraform
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg \
   && echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com noble main" > /etc/apt/sources.list.d/hashicorp.list \
-  && apt-get update && apt-get install -y terraform
+  && apt-get update && apt-get install -y terraform packer \
+  && rm -rf /var/lib/apt/lists/*
+
+# tflint und tfsec — dieselben Linter wie in den App-Repos (template-app/.github/workflows/terraform.yml).
+# Versionen sind gepinnt; arm64 (Apple Silicon) und amd64 werden unterstützt.
+ARG TFLINT_VERSION=v0.55.1
+ARG TFSEC_VERSION=v1.28.11
+RUN arch="$(dpkg --print-architecture)" \
+  && wget -qO /tmp/tflint.zip "https://github.com/terraform-linters/tflint/releases/download/${TFLINT_VERSION}/tflint_linux_${arch}.zip" \
+  && unzip -q /tmp/tflint.zip -d /usr/local/bin tflint \
+  && wget -qO /usr/local/bin/tfsec "https://github.com/aquasecurity/tfsec/releases/download/${TFSEC_VERSION}/tfsec-linux-${arch}" \
+  && chmod +x /usr/local/bin/tfsec \
+  && rm /tmp/tflint.zip \
+  # Der cracklib-Befehl /usr/sbin/packer darf den HashiCorp-Packer nicht verdecken.
+  && packer version && tflint --version && tfsec --version && terraform version
 
 # Poetry isoliert
 RUN python3 -m venv /opt/poetry \
