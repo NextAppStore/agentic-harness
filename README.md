@@ -4,7 +4,7 @@ This harness provides an isolated, reproducible Docker sandbox for running linte
 
 ## Architecture
 
-- **`Dockerfile.sandbox`**: Container image definition with Ubuntu 24.04, Python venv, Poetry, PostgreSQL, Terraform, and Shellcheck.
+- **`Dockerfile.sandbox`**: Container image definition with Ubuntu 24.04, Python venv, Poetry, PostgreSQL, Terraform, Packer, tflint, tfsec, and Shellcheck.
 - **`verify.sh`**: The verification script that boots Postgres, seeds the test database, runs `ruff`, validates templates, and executes `pytest`.
 - **`sandbox.py`**: The Python sandbox runner and programmatic SDK (`run_in_sandbox`).
 - **`run.sh`**: Quick bash CLI wrapper.
